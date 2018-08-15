@@ -1,20 +1,27 @@
-language: java
 
 sudo: required
-
-script: "mvn test javadoc:javadoc --settings travis/settings.xml"
+language: java
 
 jdk:
   - oraclejdk8
 
-env:
-  global:
-  - secure: "cDN6+bwe7NVMjvevGMwk9tdglhGf66yi3nvbnfSgio207FuNG4duF/RNOUOMsuWX1Sc79ZMDuOttZ5AvL3ZHKPtmzTBMvCdDkf1FwFmzU6N+x84rT4zyos+gZLgHbV0M0M28y8aJIJq2kcwiqVwuMBay5tjrpJ8IMPoY6eDl4uE="
-  - secure: "Ti1BykkCxqBW7s1l+yB8TDqfsJ66olEfLswisSbPu+oFCaSGD9opCLcJ3YpGEPQlbviplAiLVeNZosCqhR3gUiN7sjd7ZA+n5oVxcL7AzraTWOEU6y7kq+Edrv+6B667zusTHN+r7qWVZt497OwlYr/AkbAnpTY05ltUAeu5NSg="
-  - secure: "Bfsln02ZgO9ho/7Q8cjhGp5+sLXHtszkEK6L6TZ9xTywpPPO1ytmqKsL7TtuA4c30g1LZTJGGTvHD0RWENRCPZQqwp5TjpijS03lgoj4GSiycNYRi8FDSnwuzZcz6n1ZAKkmYQTMPmZYINYforN+wX3BMUDqGb0pjJnwrmHtm4I="
 
-after_success:
-- chmod -R 777 ./travis/push-doc-to-gh-pages.sh
-- ./travis/push-doc-to-gh-pages.sh
-- chmod -R 777 ./travis/deploy-to-sonatype.sh
-- ./travis/deploy-to-sonatype.sh
+
+script:
+  - mvn clean cobertura:cobertura -Dtest=RedirectSAML2ClientTests#testForceAuthIsSetForRedirectBinding -DfailIfNoTests=false
+
+before_deploy:
+- tar -zcvf coverage-result.tar.gz /home/travis/build/leusonmario/pac4j/target/site/cobertura
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "MuKmgeQ8g+7mY0t5Hm4wrThFKhODyFszR9iIJLM2NcDWHKk9gRbdXvIcMXTMf2oTp/sjUmxwqFwP7oVLSYV7XXLMdLZXssBwFwdb+/Te+a5gAZ02vK49cHaZfhiBQIOrs4ehsetn3TqjqVUYPejrxxq7POPaCcnoQnqQJOLjSfrrTkjZrZ6ayrWq2/nvr3nDGyest+Fizc0dCh/dNE7z1SShp0td7D/mcMvC5UwG+uvohsPN/ZY9b5EoDQgp3Iz/K+JP39pcAT7s89S6kJ4m0SSM5Afr2K8h0V0KKCQS/bI4NI4zqX61mljX/izr4O8818hSsOMMUHzAzqmbmpJ5Qh+RqVGAYUrtvBMvE4XneBLJCwTpWm2kxbaCaSBevl/9R/3d26tEeVoPq/REIKmAJq0Um3g6UgiNbARQMsv0xazb1lBcs2Kma/+MF5nNYI9Abvc98tt4XH1LLPCH8WiXXxh34LRjZ2pL7KY9lHuDJYf8+TOBmEEQP3/oa0zLEvCy16+ksfLAVi7iDYtjXM0/HUo0JloWxRTntwAXF3LshOJc5WYoNskZLm3FPvNkEoC1frPlfqp1JN27ra5Bfc9Yn0J2nhVbdeutEvL/5v6eKoL/kckLtM0FyRBhZaP+9V72B9bybCfulWtrZxjbEUoi/OsfBq1xcaD4IyQk3hGZjdQ="
+
+
+  file: coverage-result.tar.gz
+  file_glob: true
+  overwrite: true
+  skip_cleanup: true
+  on:
+    tags: true
